@@ -1,5 +1,5 @@
 //
-//  SecondViewController.swift
+//  FirstViewController.swift
 //  Kaisers Map
 //
 //  Created by Steffen Ansorge on 22.06.18.
@@ -7,9 +7,11 @@
 //
 
 import UIKit
+import MapKit
 
-class SecondViewController: UIViewController {
-
+class MapController: UIViewController {
+    @IBOutlet weak var map: MKMapView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -20,6 +22,9 @@ class SecondViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-
+    @IBAction func showMyLocation(_ sender: Any) {
+        
+    }
+    
 }
 
