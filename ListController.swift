@@ -1,5 +1,5 @@
 //
-//  SecondViewController.swift
+//  ListController.swift
 //  Kaisers Map
 //
 //  Created by Steffen Ansorge on 22.06.18.
@@ -9,12 +9,11 @@
 import UIKit
 import CoreLocation
 
-class ListController: UIViewController, CLLocationManagerDelegate {
+class ListController: UIViewController, receiveLocationInfo {
     @IBOutlet weak var itemList: UIStackView!
     
-    var manager: CLLocationManager?
-    var location: CLLocation?
-    var data = Data()
+    let locationDist = LocationDistributor.instance
+    let data = Data.instance
     var rows = [Row]()
     
     struct Row {
@@ -26,16 +25,8 @@ class ListController: UIViewController, CLLocationManagerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        
-        manager = CLLocationManager()
-        manager?.delegate = self
-        manager?.desiredAccuracy = kCLLocationAccuracyBest
-        manager?.requestAlwaysAuthorization()
-        
         collectRows()
-        initRegions()
-
-        manager?.startUpdatingLocation()
+        locationDist.addListener(regionView: self)
     }
     
     func collectRows() {
@@ -58,42 +49,13 @@ class ListController: UIViewController, CLLocationManagerDelegate {
         print("\nFinished addding rows\nFinal number of Rows: ", rows.count)
     }
     
-    func initRegions() {
-        for spot in data.tasks {
-            let region = CLCircularRegion(center: CLLocationCoordinate2D(latitude: spot.value.lat, longitude: spot.value.lon), radius: 1, identifier: String(spot.key))
-            region.notifyOnEntry = true
-            region.notifyOnExit = true
-            manager?.startMonitoring(for: region)
-        }
+    func didUpdateLocation(didUpdateLocations locations: [CLLocation]) {
+        //
     }
     
-    func swapIcon(regionID: Int) {
+    func didEnterRegion(regionID: Int) {
         print("Swap Icon for RegionID:", regionID)
         rows[regionID].uiImage.image = UIImage(named: "finished")!
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]){
-        /*let last = locations.last
-         let latVal = last?.coordinate.latitude
-         let lonVal = last?.coordinate.longitude
-         print("\nLat:" + (latVal?.description)!)
-         print("Lon:" + (lonVal?.description)!)
-         print("**** from locations:")*/
-        print("lat: " + (manager.location?.coordinate.latitude.description)! + ", lon: " + (manager.location?.coordinate.longitude.description)! + "\r")
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
-        if let region = region as? CLCircularRegion {
-            let identifier = region.identifier
-            print("Entered Region:", Int(identifier)!)
-            swapIcon(regionID: Int(identifier)!)
-        }
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
-        if let region = region as? CLCircularRegion {
-            print("Exit Region:", Int(region.identifier)!)
-        }
     }
     
     override func didReceiveMemoryWarning() {

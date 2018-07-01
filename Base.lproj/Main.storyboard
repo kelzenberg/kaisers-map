@@ -20,17 +20,24 @@
                         <subviews>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" showsUserLocation="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ie2-1t-nKq">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="618"/>
+                                <gestureRecognizers/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="bJB-09-r7V" appends="YES" id="Ob9-Pn-Z6c"/>
+                                    <outletCollection property="gestureRecognizers" destination="cBS-cm-3PR" appends="YES" id="oWF-Oo-iQr"/>
+                                    <outletCollection property="gestureRecognizers" destination="N1p-Xn-iU2" appends="YES" id="l3H-Ib-QdS"/>
+                                    <outletCollection property="gestureRecognizers" destination="3Rc-Bo-KVc" appends="YES" id="daq-uf-Zga"/>
+                                </connections>
                             </mapView>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ynf-0z-ah8">
                                 <rect key="frame" x="233" y="544" width="126" height="56"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" name="alternateSelectedControlColor" catalog="System" colorSpace="catalog"/>
+                                <color key="backgroundColor" red="0.034757062792778001" green="0.32081429610649714" blue="0.81491315364837646" alpha="1" colorSpace="calibratedRGB"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="20"/>
-                                <state key="normal" title="My Location">
+                                <state key="normal" title="Track me!">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
                                 <connections>
-                                    <action selector="showMyLocation:" destination="9pv-A4-QxB" eventType="touchUpInside" id="3gM-kS-Sm3"/>
+                                    <action selector="toggleTracking" destination="9pv-A4-QxB" eventType="touchUpInside" id="HXR-hk-ZjA"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -46,9 +53,34 @@
                     <tabBarItem key="tabBarItem" title="Karte" image="first" id="acW-dT-cKf"/>
                     <connections>
                         <outlet property="map" destination="Ie2-1t-nKq" id="MmM-Z1-Zzh"/>
+                        <outlet property="panGestureRecognizer" destination="bJB-09-r7V" id="tgR-8f-FKf"/>
+                        <outlet property="pinchGestureRecognizer" destination="cBS-cm-3PR" id="SP5-Sc-6QX"/>
+                        <outlet property="rotationGestureRecognizer" destination="N1p-Xn-iU2" id="gA6-ES-POG"/>
+                        <outlet property="tapGestureRecognizer" destination="3Rc-Bo-KVc" id="fsP-9n-VJL"/>
+                        <outlet property="trackingBtn" destination="Ynf-0z-ah8" id="EqK-y7-vjF"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="W5J-7L-Pyd" sceneMemberID="firstResponder"/>
+                <panGestureRecognizer minimumNumberOfTouches="1" id="bJB-09-r7V">
+                    <connections>
+                        <action selector="userDidMoveMap:" destination="9pv-A4-QxB" id="oMe-s8-yFO"/>
+                    </connections>
+                </panGestureRecognizer>
+                <pinchGestureRecognizer id="cBS-cm-3PR">
+                    <connections>
+                        <action selector="userDidMoveMap:" destination="9pv-A4-QxB" id="Anc-Sw-fNz"/>
+                    </connections>
+                </pinchGestureRecognizer>
+                <rotationGestureRecognizer id="N1p-Xn-iU2">
+                    <connections>
+                        <action selector="userDidMoveMap:" destination="9pv-A4-QxB" id="OnF-S7-ZIU"/>
+                    </connections>
+                </rotationGestureRecognizer>
+                <tapGestureRecognizer numberOfTapsRequired="2" id="3Rc-Bo-KVc">
+                    <connections>
+                        <action selector="userDidMoveMap:" destination="9pv-A4-QxB" id="pxN-2u-pZA"/>
+                    </connections>
+                </tapGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="749.60000000000002" y="-320.68965517241384"/>
         </scene>
