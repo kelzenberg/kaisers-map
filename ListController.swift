@@ -9,7 +9,7 @@
 import UIKit
 import CoreLocation
 
-class ListController: UIViewController, receiveLocationInfo {
+class ListController: UIViewController, LocationListener {
     @IBOutlet weak var itemList: UIStackView!
     
     let locationDist = LocationDistributor.instance
@@ -25,36 +25,44 @@ class ListController: UIViewController, receiveLocationInfo {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
+        locationDist.addLocationListener(listenerView: self)
+        
         collectRows()
-        locationDist.addListener(regionView: self)
+        //print(locationDist.manager.monitoredRegions)
     }
     
     func collectRows() {
-        var counter = 0
+        var rowIndex = 0
         for stackView in itemList.subviews {
             rows.append(
                 Row(
-                    id: counter,
+                    id: rowIndex,
                     uiImage: stackView.subviews[0] as! UIImageView,
                     uiLabel: stackView.subviews[1] as! UILabel
                 )
             )
-            let index = data.cycleDict(inc: counter)
-            let label = rows[counter].uiLabel
+            let dataIndex = data.cycleDict(inc: rowIndex)
+            let row = rows[rowIndex]
+            let task = data.tasks[dataIndex]
             
-            label.text = data.tasks[index]?.desc
-            print("Row", counter, "added with description: \"" + label.text! + "\"")
-            counter += 1
+            row.uiLabel.text = task?.desc
+            row.uiImage.image = (task?.visited)! ? UIImage(named: "finished")! : UIImage(named: "waiting")!
+            print("Row", rowIndex, "should have description: \"" + (task?.desc)! + "\"")
+            print("and was visited:", task?.visited ?? "no Bool")
+            
+            rowIndex += 1
         }
-        print("\nFinished addding rows\nFinal number of Rows: ", rows.count)
+        print("\nFinished addding rows\nFinal number of Rows: ", rows.count, "\nNumber of Tasks existent:", data.tasks.count)
     }
     
     func didUpdateLocation(didUpdateLocations locations: [CLLocation]) {
-        //
+        //print("Location updated: LIST")
     }
     
     func didEnterRegion(regionID: Int) {
-        print("Swap Icon for RegionID:", regionID)
+        print("Swap icon for Region:", regionID)
+        // TODO: animate transition between images
         rows[regionID].uiImage.image = UIImage(named: "finished")!
     }
     

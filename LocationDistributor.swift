@@ -22,7 +22,7 @@ class LocationDistributor: NSObject, CLLocationManagerDelegate {
     
     let manager = CLLocationManager()
     let data = Data.instance
-    var regionViews = [receiveLocationInfo]()
+    var regionViews = [LocationListener]()
     
     override init() {
         super.init()
@@ -30,39 +30,69 @@ class LocationDistributor: NSObject, CLLocationManagerDelegate {
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.requestAlwaysAuthorization()
         
-        initRegions()
+        clearRegions() {
+            print("Monitored regions cleared\nRegion count:", manager.monitoredRegions.count)
+        }
+        
+        initRegions() {
+            print("Monitored regions:", manager.monitoredRegions.description, "\nMonitored regions count:", manager.monitoredRegions.count)
+        }
         
         manager.startUpdatingLocation()
     }
     
     // TODO: vielleicht als Callback und Closure von View dann bekommen + merken und das Closure dann zum richtigen Zeitpunkt ausführen
-    func addListener(regionView: receiveLocationInfo){
-        print("Listener for Location added:", regionView)
-        regionViews.append(regionView)
+    func addLocationListener(listenerView: LocationListener){
+        print("Listener for Location added:", listenerView)
+        regionViews.append(listenerView)
+        print("Listener count:", regionViews.count)
     }
     
-    func initRegions() {
+    func clearRegions(completionHandler: () -> Void) {
+        // clear out all (old) regions
+        for region in manager.monitoredRegions {
+            manager.stopMonitoring(for: region)
+        }
+        completionHandler()
+    }
+    
+    func initRegions(completionHandler: () -> Void) {
+        // add new regions
         for spot in data.tasks {
-            let region = CLCircularRegion(center: CLLocationCoordinate2D(latitude: spot.value.lat, longitude: spot.value.lon), radius: 1, identifier: String(spot.key))
+            let region = CLCircularRegion(center: CLLocationCoordinate2D(latitude: spot.value.lat, longitude: spot.value.lon), radius: 2, identifier: String(spot.key))
             region.notifyOnEntry = true
             region.notifyOnExit = true
             manager.startMonitoring(for: region)
         }
+        completionHandler()
+    }
+    
+    func getLastLocation() -> CLLocationCoordinate2D {
+        return (manager.location?.coordinate)!
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        print("     lat: ", (manager.location?.coordinate.latitude.description)!, " lon: ", (manager.location?.coordinate.longitude.description)!)
+        //print("     lat: " + (manager.location?.coordinate.latitude.description)! + ", lon: " + (manager.location?.coordinate.longitude.description)!)
         for regionView in regionViews {
             regionView.didUpdateLocation(didUpdateLocations: locations)
         }
     }
     
+    func locationManager(_ manager: CLLocationManager, didStartMonitoringFor region: CLRegion) {
+        print("didStartMonitoringFor:", region.identifier)
+    }
+    
+    func locationManager(_ manager: CLLocationManager, monitoringDidFailFor region: CLRegion?, withError error: Error) {
+        print(error)
+    }
+    
     func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         if let region = region as? CLCircularRegion {
-            let identifier = region.identifier
-            print("Entered Region:", Int(identifier)!)
+            let regionID = region.identifier
+            print("Entered Region:", Int(regionID)!)
+            data.tasks[Int(regionID)!]?.visited = true
             for regionView in regionViews {
-                regionView.didEnterRegion(regionID: Int(identifier)!)
+                regionView.didEnterRegion(regionID: Int(regionID)!)
             }
         }
     }
@@ -74,7 +104,7 @@ class LocationDistributor: NSObject, CLLocationManagerDelegate {
     }
 }
 
-protocol receiveLocationInfo {
-    func didEnterRegion(regionID: Int)
+protocol LocationListener {
     func didUpdateLocation(didUpdateLocations locations: [CLLocation])
+    func didEnterRegion(regionID: Int)
 }
