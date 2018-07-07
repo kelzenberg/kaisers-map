@@ -63,22 +63,22 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="W5J-7L-Pyd" sceneMemberID="firstResponder"/>
                 <panGestureRecognizer minimumNumberOfTouches="1" id="bJB-09-r7V">
                     <connections>
-                        <action selector="userDidMoveMap:" destination="9pv-A4-QxB" id="oMe-s8-yFO"/>
+                        <action selector="userDidChangeMap:" destination="9pv-A4-QxB" id="oMe-s8-yFO"/>
                     </connections>
                 </panGestureRecognizer>
                 <pinchGestureRecognizer id="cBS-cm-3PR">
                     <connections>
-                        <action selector="userDidMoveMap:" destination="9pv-A4-QxB" id="Anc-Sw-fNz"/>
+                        <action selector="userDidChangeMap:" destination="9pv-A4-QxB" id="Anc-Sw-fNz"/>
                     </connections>
                 </pinchGestureRecognizer>
                 <rotationGestureRecognizer id="N1p-Xn-iU2">
                     <connections>
-                        <action selector="userDidMoveMap:" destination="9pv-A4-QxB" id="OnF-S7-ZIU"/>
+                        <action selector="userDidChangeMap:" destination="9pv-A4-QxB" id="OnF-S7-ZIU"/>
                     </connections>
                 </rotationGestureRecognizer>
                 <tapGestureRecognizer numberOfTapsRequired="2" id="3Rc-Bo-KVc">
                     <connections>
-                        <action selector="userDidMoveMap:" destination="9pv-A4-QxB" id="pxN-2u-pZA"/>
+                        <action selector="userDidChangeMap:" destination="9pv-A4-QxB" id="pxN-2u-pZA"/>
                     </connections>
                 </tapGestureRecognizer>
             </objects>

@@ -28,11 +28,11 @@ class ListController: UIViewController, LocationListener {
         
         locationDist.addLocationListener(listenerView: self)
         
-        collectRows()
+        setUpRows()
         //print(locationDist.manager.monitoredRegions)
     }
     
-    func collectRows() {
+    func setUpRows() {
         var rowIndex = 0
         for stackView in itemList.subviews {
             rows.append(
@@ -56,7 +56,7 @@ class ListController: UIViewController, LocationListener {
         print("\nFinished addding rows\nFinal number of Rows: ", rows.count, "\nNumber of Tasks existent:", data.tasks.count)
     }
     
-    func didUpdateLocation(didUpdateLocations locations: [CLLocation]) {
+    func didUpdateLocation(lastLocation: CLLocationCoordinate2D) {
         //print("Location updated: LIST")
     }
     

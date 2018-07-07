@@ -30,13 +30,12 @@ class LocationDistributor: NSObject, CLLocationManagerDelegate {
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.requestAlwaysAuthorization()
         
-        clearRegions() {
+        // TODO: Callback, when regions are cleared
+        clearRegions()
             print("Monitored regions cleared\nRegion count:", manager.monitoredRegions.count)
-        }
         
-        initRegions() {
+        initRegions()
             print("Monitored regions:", manager.monitoredRegions.description, "\nMonitored regions count:", manager.monitoredRegions.count)
-        }
         
         manager.startUpdatingLocation()
     }
@@ -48,15 +47,14 @@ class LocationDistributor: NSObject, CLLocationManagerDelegate {
         print("Listener count:", regionViews.count)
     }
     
-    func clearRegions(completionHandler: () -> Void) {
+    func clearRegions() {
         // clear out all (old) regions
         for region in manager.monitoredRegions {
             manager.stopMonitoring(for: region)
         }
-        completionHandler()
     }
     
-    func initRegions(completionHandler: () -> Void) {
+    func initRegions() {
         // add new regions
         for spot in data.tasks {
             let region = CLCircularRegion(center: CLLocationCoordinate2D(latitude: spot.value.lat, longitude: spot.value.lon), radius: 2, identifier: String(spot.key))
@@ -64,17 +62,12 @@ class LocationDistributor: NSObject, CLLocationManagerDelegate {
             region.notifyOnExit = true
             manager.startMonitoring(for: region)
         }
-        completionHandler()
-    }
-    
-    func getLastLocation() -> CLLocationCoordinate2D {
-        return (manager.location?.coordinate)!
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         //print("     lat: " + (manager.location?.coordinate.latitude.description)! + ", lon: " + (manager.location?.coordinate.longitude.description)!)
         for regionView in regionViews {
-            regionView.didUpdateLocation(didUpdateLocations: locations)
+            regionView.didUpdateLocation(lastLocation: (locations.last?.coordinate)!)
         }
     }
     
@@ -105,6 +98,6 @@ class LocationDistributor: NSObject, CLLocationManagerDelegate {
 }
 
 protocol LocationListener {
-    func didUpdateLocation(didUpdateLocations locations: [CLLocation])
+    func didUpdateLocation(lastLocation: CLLocationCoordinate2D)
     func didEnterRegion(regionID: Int)
 }
