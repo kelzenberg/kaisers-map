@@ -40,7 +40,7 @@ class LocationDistributor: NSObject, CLLocationManagerDelegate {
         manager.startUpdatingLocation()
     }
     
-    // TODO: vielleicht als Callback und Closure von View dann bekommen + merken und das Closure dann zum richtigen Zeitpunkt ausführen
+    // TODO: maybe use callback & closures for this
     func addLocationListener(listenerView: LocationListener){
         print("Listener for Location added:", listenerView)
         regionViews.append(listenerView)

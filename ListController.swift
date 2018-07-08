@@ -61,9 +61,11 @@ class ListController: UIViewController, LocationListener {
     }
     
     func didEnterRegion(regionID: Int) {
-        print("Swap icon for Region:", regionID)
         // TODO: animate transition between images
-        rows[regionID].uiImage.image = UIImage(named: "finished")!
+        if (data.tasks[regionID]?.visited)! {
+            print("Swap icon for Region:", regionID)
+            rows[regionID].uiImage.image = UIImage(named: "finished")!
+        }
     }
     
     override func didReceiveMemoryWarning() {

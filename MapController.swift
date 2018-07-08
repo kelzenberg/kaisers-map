@@ -28,15 +28,12 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
     class Marker: NSObject, MKAnnotation {
         var coordinate: CLLocationCoordinate2D
         let id: Int
-        var title: String? {
-            return String(id)
-        }
-        let subtitle: String?
+        var title: String?
         
-        init(coordinates: CLLocationCoordinate2D, id: Int, description subtitle: String) {
+        init(coordinates: CLLocationCoordinate2D, id: Int, title: String) {
             self.coordinate = coordinates
             self.id = id
-            self.subtitle = subtitle
+            self.title = title
         }
     }
     
@@ -69,9 +66,20 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
     }
     
     func setUpMarkers() {
+        for annotation in map.annotations {
+            map.removeAnnotation(annotation)
+        }
+        
         for task in data.tasks {
-            let marker = Marker(coordinates: CLLocationCoordinate2D(latitude:  task.value.lat, longitude:  task.value.lon), id: task.key, description: task.value.desc)
-            markerViews.append(MKMarkerAnnotationView())
+            let marker = Marker(coordinates: CLLocationCoordinate2D(latitude:  task.value.lat, longitude:  task.value.lon), id: task.key, title: task.value.desc)
+            
+            let annotationView = MKMarkerAnnotationView()
+            if (data.tasks[marker.id]?.visited)! {
+                print("Region \(marker.id) was already visited.")
+                annotationView.markerTintColor = UIColor.green
+            }
+            markerViews.append(annotationView)
+            
             map.addAnnotation(marker)
         }
     }
@@ -81,16 +89,27 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
         guard let annotation = annotation as? Marker else { return nil }
         
         var annotationView = MKMarkerAnnotationView()
+        let color = annotationView.markerTintColor
         let identifier = "simpleMarker"
         // map view reuses annotation views that are no longer visible.
         // this checks to see if a reusable annotation view is available before creating a new one
         if let dequeuedView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKMarkerAnnotationView {
             annotationView = dequeuedView
             dequeuedView.annotation = annotation
-        } else{
+        } else {
             annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: identifier)
             annotationView.canShowCallout = true
         }
+        
+        // TODO: maybe make this separatable by using the let identifier = "..." e.g. "visited:green" "not:red"
+        if (data.tasks[annotation.id]?.visited)! {
+            print("Region \(annotation.id) was already visited.")
+            annotationView.markerTintColor = UIColor.green
+        } else {
+            annotationView.markerTintColor = color
+        }
+        
+        print("Annotation added with ID: \(annotation.id)")
         markerViews[annotation.id] = annotationView
         return annotationView
     }
@@ -138,11 +157,10 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
     }
 
     func didEnterRegion(regionID: Int) {
-        for marker in markerViews {
-            if marker.annotation?.title == String(regionID) {
-                marker.markerTintColor = UIColor.cyan
-            }
-        }
+        // TODO: switching from List back to Map doesn't update marker colors for entered regions
+        // force annotation to update it's appearance !
+        print("Swap marker color for Region:", regionID)
+        markerViews[regionID].markerTintColor = UIColor.green
     }
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {

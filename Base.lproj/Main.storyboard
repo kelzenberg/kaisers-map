@@ -50,7 +50,7 @@
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="PQr-Ze-W5v"/>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Karte" image="first" id="acW-dT-cKf"/>
+                    <tabBarItem key="tabBarItem" title="Karte" image="map" id="acW-dT-cKf"/>
                     <connections>
                         <outlet property="map" destination="Ie2-1t-nKq" id="MmM-Z1-Zzh"/>
                         <outlet property="panGestureRecognizer" destination="bJB-09-r7V" id="tgR-8f-FKf"/>
@@ -226,7 +226,7 @@
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="O1u-W8-tvY"/>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Aufgaben" image="second" id="cPa-gy-q4n"/>
+                    <tabBarItem key="tabBarItem" title="Aufgaben" image="tasks" id="cPa-gy-q4n"/>
                     <connections>
                         <outlet property="itemList" destination="rbE-0E-TDK" id="zjl-1Q-VUr"/>
                     </connections>
@@ -255,8 +255,8 @@
         </scene>
     </scenes>
     <resources>
-        <image name="first" width="30" height="30"/>
-        <image name="second" width="30" height="30"/>
+        <image name="map" width="30" height="30"/>
+        <image name="tasks" width="30" height="30"/>
         <image name="waiting" width="400" height="400"/>
     </resources>
 </document>
