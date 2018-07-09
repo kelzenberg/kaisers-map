@@ -35,6 +35,9 @@ class ListController: UIViewController, LocationListener {
     func setUpRows() {
         var rowIndex = 0
         for stackView in itemList.subviews {
+            if (stackView.tag == 1) {
+                break
+            }
             rows.append(
                 Row(
                     id: rowIndex,

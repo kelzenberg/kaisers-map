@@ -21,18 +21,20 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
     
     let locationDist = LocationDistributor.instance
     let data = Data.instance
-    var markerViews = [MKMarkerAnnotationView]()
     var initialized = false
     var trackingStatus = false
     
     class Marker: NSObject, MKAnnotation {
-        var coordinate: CLLocationCoordinate2D
         let id: Int
+        var coordinate: CLLocationCoordinate2D
         var title: String?
         
-        init(coordinates: CLLocationCoordinate2D, id: Int, title: String) {
-            self.coordinate = coordinates
+        static let colorBlue = UIColor(red: 108.0/255.0, green: 174.0/255.0, blue: 255.0/255.0, alpha: 1.0)
+        static let colorGreen = UIColor(red: 128.0/255.0, green: 236.0/255.0, blue: 138.0/255.0, alpha: 1.0)
+        
+        init(id: Int, coordinates: CLLocationCoordinate2D, title: String) {
             self.id = id
+            self.coordinate = coordinates
             self.title = title
         }
     }
@@ -62,37 +64,69 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
         map.addGestureRecognizer(pinchGestureRecognizer)
         map.addGestureRecognizer(rotationGestureRecognizer)
         map.addGestureRecognizer(tapGestureRecognizer)
+        
+        trackingBtn.layer.masksToBounds = false
+        trackingBtn.layer.cornerRadius = trackingBtn.frame.width / 2
 
     }
     
     func setUpMarkers() {
+        //clean up any possible old annotations
         for annotation in map.annotations {
             map.removeAnnotation(annotation)
         }
-        
         for task in data.tasks {
-            let marker = Marker(coordinates: CLLocationCoordinate2D(latitude:  task.value.lat, longitude:  task.value.lon), id: task.key, title: task.value.desc)
-            
-            let annotationView = MKMarkerAnnotationView()
-            if (data.tasks[marker.id]?.visited)! {
-                print("Region \(marker.id) was already visited.")
-                annotationView.markerTintColor = UIColor.green
-            }
-            markerViews.append(annotationView)
-            
+            let marker = Marker(id: task.key, coordinates: CLLocationCoordinate2D(latitude: task.value.lat, longitude: task.value.lon), title: task.value.desc)
             map.addAnnotation(marker)
+        }
+    }
+    
+    func setMapViewRegion(coordinates: CLLocationCoordinate2D) {
+        let viewRegion = MKCoordinateRegionMakeWithDistance(coordinates, 700, 700)
+        map.setRegion(viewRegion, animated: true)
+    }
+    
+    func mapView(_ mapView: MKMapView, didAdd views: [MKAnnotationView]) {
+        for thisView in views {
+            let thisAnnotation = thisView.annotation
+            
+            for theirAnnotation in mapView.annotations {
+                let theirView = mapView.view(for: theirAnnotation) as? MKMarkerAnnotationView
+                let theirAnnotation = theirAnnotation as? Marker
+                //print("casting worked")
+            
+                if (theirView != nil && theirAnnotation != nil){
+                    //print("correct view/marker type")
+                
+                    if theirAnnotation!.isEqual(thisAnnotation) {
+                        print("correct marker")
+                    
+                        if (data.tasks[theirAnnotation!.id]?.visited)! {
+                            print("Region \(theirAnnotation!.id) was already visited.")
+                            theirView!.markerTintColor = Marker.colorGreen
+                        } else {
+                            theirView!.markerTintColor = Marker.colorBlue
+                        }
+                        
+                    } else {
+                        //print("wrong marker")
+                    }
+                }
+            }
         }
     }
     
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         // make sure annotation is of type Marker here
         guard let annotation = annotation as? Marker else { return nil }
-        
+        // setup variables
         var annotationView = MKMarkerAnnotationView()
-        let color = annotationView.markerTintColor
         let identifier = "simpleMarker"
-        // map view reuses annotation views that are no longer visible.
-        // this checks to see if a reusable annotation view is available before creating a new one
+        /*
+        * map view reuses annotation views that are no longer visible.
+        * this checks to see if a reusable annotation view is available
+        * before creating a new one
+        */
         if let dequeuedView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKMarkerAnnotationView {
             annotationView = dequeuedView
             dequeuedView.annotation = annotation
@@ -101,16 +135,6 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
             annotationView.canShowCallout = true
         }
         
-        // TODO: maybe make this separatable by using the let identifier = "..." e.g. "visited:green" "not:red"
-        if (data.tasks[annotation.id]?.visited)! {
-            print("Region \(annotation.id) was already visited.")
-            annotationView.markerTintColor = UIColor.green
-        } else {
-            annotationView.markerTintColor = color
-        }
-        
-        print("Annotation added with ID: \(annotation.id)")
-        markerViews[annotation.id] = annotationView
         return annotationView
     }
     
@@ -118,18 +142,6 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
         trackingStatus = !trackingStatus
         trackingBtn.isHidden = trackingStatus
         print("Tracking Status:", trackingStatus)
-    }
-    
-    @IBAction func userDidChangeMap(_ sender: UIGestureRecognizer) {
-        if trackingStatus && sender.state == .ended {
-            print(sender.name ?? "No_name_provided", "registered user input on map.")
-            toggleTracking()
-        }
-    }
-    
-    func setMapViewRegion(coordinates: CLLocationCoordinate2D) {
-        let viewRegion = MKCoordinateRegionMakeWithDistance(coordinates, 700, 700)
-        map.setRegion(viewRegion, animated: true)
     }
     
     func setTracking() {
@@ -148,6 +160,13 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
         }
     }
     
+    @IBAction func userDidChangeMap(_ sender: UIGestureRecognizer) {
+        if trackingStatus && sender.state == .ended {
+            print(sender.name ?? "No_name_provided", "registered user input on map.")
+            toggleTracking()
+        }
+    }
+    
     func didUpdateLocation(lastLocation: CLLocationCoordinate2D) {
         if (!initialized) {
             setMapViewRegion(coordinates: lastLocation)
@@ -157,10 +176,15 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
     }
 
     func didEnterRegion(regionID: Int) {
-        // TODO: switching from List back to Map doesn't update marker colors for entered regions
-        // force annotation to update it's appearance !
-        print("Swap marker color for Region:", regionID)
-        markerViews[regionID].markerTintColor = UIColor.green
+        for annotation in map.annotations {
+            guard let annotation = annotation as? Marker else { continue }
+            if (annotation.id == regionID) {
+                let tempAnnotation = annotation
+                map.removeAnnotation(annotation)
+                map.addAnnotation(tempAnnotation)
+                print("Annotation \(annotation.id) removed & \(tempAnnotation.id) added again")
+            }
+        }
     }
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
