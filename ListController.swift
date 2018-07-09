@@ -59,15 +59,25 @@ class ListController: UIViewController, LocationListener {
         print("\nFinished addding rows\nFinal number of Rows: ", rows.count, "\nNumber of Tasks existent:", data.tasks.count)
     }
     
+    func animateSwapImageEvent(for imgView: UIImageView) {
+        UIView.animate(withDuration: 0.1, animations: {
+            imgView.alpha = 0
+        }) { (value: Bool) in
+            UIView.animate(withDuration: 0.1, animations: {
+                imgView.image = UIImage(named: "finished")!
+                imgView.alpha = 1
+            })
+        }
+    }
+    
     func didUpdateLocation(lastLocation: CLLocationCoordinate2D) {
         //print("Location updated: LIST")
     }
     
     func didEnterRegion(regionID: Int) {
-        // TODO: animate transition between images
         if (data.tasks[regionID]?.visited)! {
             print("Swap icon for Region:", regionID)
-            rows[regionID].uiImage.image = UIImage(named: "finished")!
+            animateSwapImageEvent(for: rows[regionID].uiImage)
         }
     }
     

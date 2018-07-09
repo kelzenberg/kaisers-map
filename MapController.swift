@@ -11,9 +11,9 @@ import CoreLocation
 import MapKit
 
 class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDelegate, LocationListener {
-    
     @IBOutlet weak var map: MKMapView!
     @IBOutlet weak var trackingBtn: UIButton!
+    @IBOutlet weak var trackingInfo: UIButton!
     @IBOutlet var panGestureRecognizer: UIPanGestureRecognizer!
     @IBOutlet var pinchGestureRecognizer: UIPinchGestureRecognizer!
     @IBOutlet var rotationGestureRecognizer: UIRotationGestureRecognizer!
@@ -30,7 +30,7 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
         var title: String?
         
         static let colorBlue = UIColor(red: 108.0/255.0, green: 174.0/255.0, blue: 255.0/255.0, alpha: 1.0)
-        static let colorGreen = UIColor(red: 128.0/255.0, green: 236.0/255.0, blue: 138.0/255.0, alpha: 1.0)
+        static let colorRed = UIColor(red: 255.0/255.0, green: 131.0/255.0, blue: 108.0/255.0, alpha: 1.0)
         
         init(id: Int, coordinates: CLLocationCoordinate2D, title: String) {
             self.id = id
@@ -65,8 +65,8 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
         map.addGestureRecognizer(rotationGestureRecognizer)
         map.addGestureRecognizer(tapGestureRecognizer)
         
-        trackingBtn.layer.masksToBounds = false
-        trackingBtn.layer.cornerRadius = trackingBtn.frame.width / 2
+        trackingInfo.layer.masksToBounds = false
+        trackingInfo.layer.cornerRadius = trackingInfo.frame.width / 20
 
     }
     
@@ -99,13 +99,13 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
                     //print("correct view/marker type")
                 
                     if theirAnnotation!.isEqual(thisAnnotation) {
-                        print("correct marker")
+                        //print("correct marker")
                     
                         if (data.tasks[theirAnnotation!.id]?.visited)! {
-                            print("Region \(theirAnnotation!.id) was already visited.")
-                            theirView!.markerTintColor = Marker.colorGreen
-                        } else {
+                            print("Region \(theirAnnotation!.id) is visited. Swapping colors!")
                             theirView!.markerTintColor = Marker.colorBlue
+                        } else {
+                            theirView!.markerTintColor = Marker.colorRed
                         }
                         
                     } else {
@@ -140,8 +140,24 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
     
     @IBAction func toggleTracking() {
         trackingStatus = !trackingStatus
-        trackingBtn.isHidden = trackingStatus
+        animateHideShowEvent(for: trackingBtn)
+        animateHideShowEvent(for: trackingInfo)
         print("Tracking Status:", trackingStatus)
+    }
+    
+    func animateHideShowEvent(for btn: UIButton) {
+        if !(btn.isHidden) {
+            UIView.animate(withDuration: 0.2, animations: {
+                btn.alpha = 0
+            }) { (value: Bool) in
+                btn.isHidden = true
+            }
+        } else {
+            btn.isHidden = false
+            UIView.animate(withDuration: 0.2) {
+                btn.alpha = 1
+            }
+        }
     }
     
     func setTracking() {
@@ -182,7 +198,7 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
                 let tempAnnotation = annotation
                 map.removeAnnotation(annotation)
                 map.addAnnotation(tempAnnotation)
-                print("Annotation \(annotation.id) removed & \(tempAnnotation.id) added again")
+                print("Annotation \(annotation.id) removed & added \(tempAnnotation.id) again")
             }
         }
     }
