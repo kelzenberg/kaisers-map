@@ -8,6 +8,7 @@
 
 import Foundation
 import CoreLocation
+import UserNotifications
 
 class LocationDistributor: NSObject, CLLocationManagerDelegate {
     static var internalInstance: LocationDistributor?
@@ -21,8 +22,10 @@ class LocationDistributor: NSObject, CLLocationManagerDelegate {
     }
     
     let manager = CLLocationManager()
+    let center = UNUserNotificationCenter.current()
     let data = Data.instance
-    var regionViews = [LocationListener]()
+    var listenerViews = [LocationListener]()
+    var permitNotification = false
     
     override init() {
         super.init()
@@ -30,43 +33,77 @@ class LocationDistributor: NSObject, CLLocationManagerDelegate {
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.requestAlwaysAuthorization()
         
-        // TODO: Callback, when regions are cleared
-        clearRegions()
-            print("Monitored regions cleared\nRegion count:", manager.monitoredRegions.count)
+        center.requestAuthorization(options: [.alert]) { (granted, error) in
+            if !granted {
+                self.permitNotification = true
+                print("User denied notifications.")
+            }
+            if error != nil {
+                print("Authorization returned error:\n\((error)!)")
+            }
+        }
+        center.getNotificationSettings { (settings) in
+            if settings.authorizationStatus != .authorized {
+                self.permitNotification = false
+                print("User changed permissions & denied notifications.")
+            }
+        }
         
-        initRegions()
-            print("Monitored regions:", manager.monitoredRegions.description, "\nMonitored regions count:", manager.monitoredRegions.count)
+        initRegionsAndNotifications()
         
         manager.startUpdatingLocation()
     }
     
-    // TODO: maybe use callback & closures for this
-    func addLocationListener(listenerView: LocationListener){
+    func addLocationListener(for listenerView: LocationListener){
         print("Listener for Location added:", listenerView)
-        regionViews.append(listenerView)
-        print("Listener count:", regionViews.count)
+        listenerViews.append(listenerView)
+        print("Listener count:", listenerViews.count)
     }
     
     func clearRegions() {
-        // clear out all (old) regions
         for region in manager.monitoredRegions {
             manager.stopMonitoring(for: region)
         }
     }
     
-    func initRegions() {
-        // add new regions
+    func initRegionsAndNotifications() {
+        // clear out all (old) regions first
+        clearRegions()
+        print("Monitored regions cleared\nRegion count: \(manager.monitoredRegions.count)")
+        // add new regions & notification
         for spot in data.tasks {
-            let region = CLCircularRegion(center: CLLocationCoordinate2D(latitude: spot.value.lat, longitude: spot.value.lon), radius: 2, identifier: String(spot.key))
+            let identifier = String(spot.key)
+            
+            let region = CLCircularRegion(center: CLLocationCoordinate2D(latitude: spot.value.lat, longitude: spot.value.lon), radius: 2, identifier: identifier )
             region.notifyOnEntry = true
             region.notifyOnExit = true
+            
+            let notification = UNMutableNotificationContent()
+            notification.title = spot.value.desc
+            notification.body = "Some Content"
+            let tempRegion = CLCircularRegion(center: region.center, radius: 20, identifier: region.identifier)
+            let trigger = UNLocationNotificationTrigger(region: tempRegion, repeats: false)
+            let request = UNNotificationRequest(identifier: identifier, content: notification, trigger: trigger)
+            
+            center.add(request) { (error) in
+                if error != nil {
+                    print("Adding Notification returned error:\n\((error)!)")
+                }
+            }
+            print("Center added request: \(request.content.title)")
             manager.startMonitoring(for: region)
         }
+        
+        print("Monitored regions: \(manager.monitoredRegions.description)\nMonitored regions count: \(manager.monitoredRegions.count)")
+        center.getPendingNotificationRequests { (requests) in
+            print("Notifications pending: \(requests.count)")
+        }
+
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         //print("     lat: " + (manager.location?.coordinate.latitude.description)! + ", lon: " + (manager.location?.coordinate.longitude.description)!)
-        for regionView in regionViews {
+        for regionView in listenerViews {
             regionView.didUpdateLocation(lastLocation: (locations.last?.coordinate)!)
         }
     }
@@ -84,7 +121,8 @@ class LocationDistributor: NSObject, CLLocationManagerDelegate {
             let regionID = region.identifier
             print("Entered Region:", Int(regionID)!)
             data.tasks[Int(regionID)!]?.visited = true
-            for regionView in regionViews {
+            Sound.notifyBySound(with: Sound.IDs.location)
+            for regionView in listenerViews {
                 regionView.didEnterRegion(regionID: Int(regionID)!)
             }
         }

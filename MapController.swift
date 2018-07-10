@@ -9,8 +9,9 @@
 import UIKit
 import CoreLocation
 import MapKit
+import UserNotifications
 
-class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDelegate, LocationListener {
+class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDelegate, UNUserNotificationCenterDelegate, LocationListener {
     @IBOutlet weak var map: MKMapView!
     @IBOutlet weak var trackingBtn: UIButton!
     @IBOutlet weak var trackingInfo: UIButton!
@@ -43,10 +44,15 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        locationDist.addLocationListener(listenerView: self)
+        locationDist.addLocationListener(for: self)
         
         map.delegate = self
         setUpMarkers()
+        
+        UNUserNotificationCenter.current().delegate = self
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert]) { (granted, error) in
+            //
+        }
         
         panGestureRecognizer.delegate = self
         panGestureRecognizer.name = "Pan Recognizer"
@@ -140,24 +146,10 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
     
     @IBAction func toggleTracking() {
         trackingStatus = !trackingStatus
+        Sound.notifyBySound(with: Sound.IDs.tap)
         animateHideShowEvent(for: trackingBtn)
         animateHideShowEvent(for: trackingInfo)
         print("Tracking Status:", trackingStatus)
-    }
-    
-    func animateHideShowEvent(for btn: UIButton) {
-        if !(btn.isHidden) {
-            UIView.animate(withDuration: 0.2, animations: {
-                btn.alpha = 0
-            }) { (value: Bool) in
-                btn.isHidden = true
-            }
-        } else {
-            btn.isHidden = false
-            UIView.animate(withDuration: 0.2) {
-                btn.alpha = 1
-            }
-        }
     }
     
     func setTracking() {
@@ -180,6 +172,21 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
         if trackingStatus && sender.state == .ended {
             print(sender.name ?? "No_name_provided", "registered user input on map.")
             toggleTracking()
+        }
+    }
+    
+    func animateHideShowEvent(for btn: UIButton) {
+        if !(btn.isHidden) {
+            UIView.animate(withDuration: 0.2, animations: {
+                btn.alpha = 0
+            }) { (value: Bool) in
+                btn.isHidden = true
+            }
+        } else {
+            btn.isHidden = false
+            UIView.animate(withDuration: 0.2) {
+                btn.alpha = 1
+            }
         }
     }
     
@@ -206,6 +213,16 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         // make another gesture recognizer work with recognizers in MKMapView
         return true
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.alert])
+        print("Notification should have been seen now.")
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        completionHandler()
+        print("möööööööööööööööööp")
     }
 
     override func didReceiveMemoryWarning() {

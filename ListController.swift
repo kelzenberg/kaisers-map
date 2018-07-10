@@ -8,8 +8,9 @@
 
 import UIKit
 import CoreLocation
+import UserNotifications
 
-class ListController: UIViewController, LocationListener {
+class ListController: UIViewController, UNUserNotificationCenterDelegate, LocationListener {
     @IBOutlet weak var itemList: UIStackView!
     
     let locationDist = LocationDistributor.instance
@@ -26,7 +27,9 @@ class ListController: UIViewController, LocationListener {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        locationDist.addLocationListener(listenerView: self)
+        locationDist.addLocationListener(for: self)
+        
+        UNUserNotificationCenter.current().delegate = self
         
         setUpRows()
         //print(locationDist.manager.monitoredRegions)
@@ -79,6 +82,11 @@ class ListController: UIViewController, LocationListener {
             print("Swap icon for Region:", regionID)
             animateSwapImageEvent(for: rows[regionID].uiImage)
         }
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler(.alert)
+        print("Notification should have been seen now.")
     }
     
     override func didReceiveMemoryWarning() {
