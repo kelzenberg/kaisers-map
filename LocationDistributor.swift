@@ -80,7 +80,7 @@ class LocationDistributor: NSObject, CLLocationManagerDelegate {
             
             let notification = UNMutableNotificationContent()
             notification.title = spot.value.desc
-            notification.body = "Some Content"
+            notification.body = "\"Just do it!\" – Shia LaBeouf"
             let tempRegion = CLCircularRegion(center: region.center, radius: 20, identifier: region.identifier)
             let trigger = UNLocationNotificationTrigger(region: tempRegion, repeats: false)
             let request = UNNotificationRequest(identifier: identifier, content: notification, trigger: trigger)

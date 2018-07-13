@@ -222,7 +222,6 @@ class MapController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDel
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         completionHandler()
-        print("möööööööööööööööööp")
     }
 
     override func didReceiveMemoryWarning() {
